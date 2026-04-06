@@ -1,0 +1,89 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  phone     String?
+  college   String?
+  avatar    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  notes             Note[]
+  books             Book[]
+  orders            Order[]
+  sentRequests      ContactRequest[] @relation("SentRequests")
+  receivedRequests  ContactRequest[] @relation("ReceivedRequests")
+}
+
+model Note {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  subject     String
+  fileName    String
+  fileSize    Int
+  fileUrl     String
+  price       Float    @default(0)
+  type        String   @default("sell") // sell, donate
+  downloads   Int      @default(0)
+  userId      String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user    User     @relation(fields: [userId], references: [id])
+  orders  Order[]
+}
+
+model Book {
+  id          String   @id @default(cuid())
+  title       String
+  author      String
+  edition     String?
+  condition   String   @default("Good") // Like New, Good, Fair, Worn
+  price       Float    @default(0)
+  type        String   @default("sell") // sell, lend, donate
+  description String?
+  imageUrl    String?
+  status      String   @default("available") // available, claimed, sold, lent
+  userId      String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user            User             @relation(fields: [userId], references: [id])
+  contactRequests ContactRequest[]
+}
+
+model Order {
+  id          String   @id @default(cuid())
+  userId      String
+  noteId      String
+  amount      Float
+  status      String   @default("completed") // pending, completed, failed
+  createdAt   DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+  note Note @relation(fields: [noteId], references: [id])
+}
+
+model ContactRequest {
+  id          String   @id @default(cuid())
+  bookId      String
+  fromUserId  String
+  toUserId    String
+  message     String?
+  status      String   @default("pending") // pending, accepted, rejected
+  createdAt   DateTime @default(now())
+
+  book     Book @relation(fields: [bookId], references: [id])
+  fromUser User @relation("SentRequests", fields: [fromUserId], references: [id])
+  toUser   User @relation("ReceivedRequests", fields: [toUserId], references: [id])
+}
