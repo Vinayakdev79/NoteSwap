@@ -96,6 +96,7 @@ export default function ListBookDialog({ onListed }: ListBookDialogProps) {
       formData.append('price', form.type === 'donate' ? '0' : form.price)
       formData.append('description', form.description)
       if (imageFile) formData.append('image', imageFile)
+      if (currentUser?.id) formData.append('userId', currentUser.id)
 
       const res = await fetch('/api/books', {
         method: 'POST',

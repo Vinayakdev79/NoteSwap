@@ -78,6 +78,7 @@ export default function UploadNoteDialog({ onUploaded }: UploadNoteDialogProps) 
       formData.append('subject', form.subject)
       formData.append('type', form.type)
       formData.append('price', form.type === 'donate' ? '0' : form.price)
+      if (currentUser?.id) formData.append('userId', currentUser.id)
 
       const res = await fetch('/api/notes', {
         method: 'POST',

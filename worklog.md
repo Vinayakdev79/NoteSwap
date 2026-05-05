@@ -29,3 +29,23 @@ Stage Summary:
 - All API endpoints tested and working (200 status codes)
 - Clean lint pass with zero errors
 - Application running on port 3000
+
+---
+Task ID: 2
+Agent: Main
+Task: Fix foreign key constraint error on note/book upload
+
+Work Log:
+- Analyzed error screenshot using VLM: identified "Foreign key constraint violated" error in db.note.create()
+- Root cause: Frontend upload dialogs (upload-note-dialog.tsx, list-book-dialog.tsx) were NOT sending userId in FormData
+- Backend fallback `userId: userId || 'anonymous'` used non-existent 'anonymous' user, triggering FK constraint violation
+- Fix 1: Added `if (currentUser?.id) formData.append('userId', currentUser.id)` to both upload-note-dialog.tsx and list-book-dialog.tsx
+- Fix 2: Added userId validation in backend APIs (/api/notes and /api/books) - checks if userId is present and user exists in DB before creating records
+- Fix 3: Removed unsafe `|| 'anonymous'` fallback, now uses validated userId directly
+- Verified POST /api/books 201 success through preview panel
+- Verified clean lint pass with zero errors
+
+Stage Summary:
+- Foreign key constraint error fully resolved
+- Both note upload and book listing now require authenticated user with valid userId
+- Proper error messages returned for unauthenticated requests (401 status)

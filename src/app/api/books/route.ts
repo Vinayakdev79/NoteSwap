@@ -53,6 +53,15 @@ export async function POST(req: NextRequest) {
     if (!author) {
       return NextResponse.json({ error: 'Author is required' }, { status: 400 })
     }
+    if (!userId) {
+      return NextResponse.json({ error: 'You must be signed in to list books. Please sign in and try again.' }, { status: 401 })
+    }
+
+    // Verify user exists
+    const user = await db.user.findUnique({ where: { id: userId } })
+    if (!user) {
+      return NextResponse.json({ error: 'User not found. Please sign in again.' }, { status: 401 })
+    }
 
     let imageUrl: string | null = null
 
@@ -75,7 +84,7 @@ export async function POST(req: NextRequest) {
         type,
         description,
         imageUrl,
-        userId: userId || 'anonymous',
+        userId,
       },
     })
 

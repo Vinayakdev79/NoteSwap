@@ -55,6 +55,15 @@ export async function POST(req: NextRequest) {
     if (!subject) {
       return NextResponse.json({ error: 'Subject is required' }, { status: 400 })
     }
+    if (!userId) {
+      return NextResponse.json({ error: 'You must be signed in to upload notes. Please sign in and try again.' }, { status: 401 })
+    }
+
+    // Verify user exists
+    const user = await db.user.findUnique({ where: { id: userId } })
+    if (!user) {
+      return NextResponse.json({ error: 'User not found. Please sign in again.' }, { status: 401 })
+    }
 
     // Generate unique filename
     const ext = path.extname(file.name) || '.pdf'
@@ -75,7 +84,7 @@ export async function POST(req: NextRequest) {
         fileUrl: `/uploads/notes/${uniqueName}`,
         price,
         type,
-        userId: userId || 'anonymous',
+        userId,
       },
     })
 
