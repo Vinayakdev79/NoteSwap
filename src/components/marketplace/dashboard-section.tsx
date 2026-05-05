@@ -14,10 +14,9 @@ import {
   Trash2,
   Eye,
   Loader2,
-  BarChart3,
   DollarSign,
-  Gift,
 } from 'lucide-react'
+import { toast } from 'sonner'
 import NoteDetailDialog from './note-detail-dialog'
 import BookDetailDialog from './book-detail-dialog'
 import {

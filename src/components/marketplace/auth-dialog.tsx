@@ -52,6 +52,13 @@ export default function AuthDialog() {
           isLogin,
         }),
       })
+
+      // Handle non-JSON responses (e.g. server error pages)
+      const contentType = res.headers.get('content-type') || ''
+      if (!contentType.includes('application/json')) {
+        throw new Error('Server error. Please try again in a moment.')
+      }
+
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Something went wrong')
 
@@ -61,7 +68,11 @@ export default function AuthDialog() {
       setShowAuthDialog(false)
       resetForm()
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : 'Failed to sign in')
+      if (err instanceof SyntaxError) {
+        toast.error('Server error. Please try again.')
+      } else {
+        toast.error(err instanceof Error ? err.message : 'Failed to sign in')
+      }
     } finally {
       setLoading(false)
     }

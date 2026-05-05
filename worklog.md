@@ -49,3 +49,25 @@ Stage Summary:
 - Foreign key constraint error fully resolved
 - Both note upload and book listing now require authenticated user with valid userId
 - Proper error messages returned for unauthenticated requests (401 status)
+
+---
+Task ID: 3
+Agent: Main
+Task: Fix three runtime errors: JSON parse error on signup, toast undefined in notes/books sections
+
+Work Log:
+- Analyzed 3 error screenshots using VLM
+- Error 1: "Unexpected token '<', <!DOCTYPE... is not valid JSON" in auth-dialog.tsx — server returning HTML instead of JSON
+  - Fix: Added content-type check before res.json(), added SyntaxError catch with user-friendly message
+- Error 2: "toast is not defined" in notes-section.tsx fetchNotes()
+  - Fix: Added `import { toast } from 'sonner'`
+- Error 3: "toast is not defined" in books-section.tsx fetchBooks()
+  - Fix: Added `import { toast } from 'sonner'`
+- Also found and fixed same missing import in dashboard-section.tsx
+- Removed unused imports (BarChart3, Gift) from dashboard-section.tsx
+- Verified clean lint pass with zero errors
+
+Stage Summary:
+- All three runtime errors resolved
+- Auth dialog now gracefully handles server errors with user-friendly toast messages
+- All components using toast now properly import from sonner
