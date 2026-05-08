@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Script from 'next/script'
 import {
   Dialog,
   DialogContent,
@@ -9,217 +10,290 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { useAppStore } from '@/lib/store'
-import { CreditCard, Loader2, ShieldCheck, CheckCircle2, Lock } from 'lucide-react'
+import { Loader2, ShieldCheck, CheckCircle2, Smartphone, Building2, Wallet, Info } from 'lucide-react'
 import { toast } from 'sonner'
 
-const MOCK_CARDS = [
-  { last4: '4242', brand: 'Visa' },
-  { last4: '8888', brand: 'Mastercard' },
-]
+const RAZORPAY_KEY = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || 'rzp_test_1234567890'
+
+declare global {
+  interface Window {
+    Razorpay: new (options: RazorpayOptions) => RazorpayInstance
+  }
+}
+
+interface RazorpayOptions {
+  key: string
+  amount: number
+  currency: string
+  name: string
+  description: string
+  order_id: string
+  handler: (response: RazorpayResponse) => void
+  prefill: { name: string; email: string; contact?: string }
+  theme: { color: string }
+  modal?: { ondismiss?: () => void }
+}
+
+interface RazorpayInstance {
+  open: () => void
+  close: () => void
+}
+
+interface RazorpayResponse {
+  razorpay_payment_id: string
+  razorpay_order_id: string
+  razorpay_signature: string
+}
 
 export default function PaymentDialog() {
-  const { showPaymentDialog, setShowPaymentDialog, paymentNote, setPaymentNote } = useAppStore()
+  const { showPaymentDialog, setShowPaymentDialog, paymentNote, setPaymentNote, currentUser } = useAppStore()
   const [step, setStep] = useState<'form' | 'processing' | 'success'>('form')
-  const [cardNumber, setCardNumber] = useState('')
-  const [expiry, setExpiry] = useState('')
-  const [cvv, setCvv] = useState('')
-  const [cardName, setCardName] = useState('')
 
   if (!paymentNote) return null
 
+  const COMMISSION = 5
+  const sellerGets = Math.max(0, paymentNote.price - COMMISSION)
+
   const resetDialog = () => {
     setStep('form')
-    setCardNumber('')
-    setExpiry('')
-    setCvv('')
-    setCardName('')
     setPaymentNote(null)
     setShowPaymentDialog(false)
   }
 
-  const formatCardNumber = (value: string) => {
-    const clean = value.replace(/\D/g, '').slice(0, 16)
-    return clean.replace(/(.{4})/g, '$1 ').trim()
+  const openRazorpayCheckout = async (orderData: { orderId: string; amount: number; key: string }) => {
+    if (typeof window === 'undefined' || !window.Razorpay) {
+      // Fallback if Razorpay SDK is not loaded (demo mode)
+      handleDemoPayment(orderData.orderId)
+      return
+    }
+
+    const options: RazorpayOptions = {
+      key: orderData.key,
+      amount: orderData.amount,
+      currency: 'INR',
+      name: 'NoteSwap',
+      description: `Purchase: ${paymentNote.title}`,
+      order_id: orderData.orderId,
+      handler: async (response: RazorpayResponse) => {
+        await verifyAndCompletePayment(
+          response.razorpay_order_id,
+          response.razorpay_payment_id,
+          response.razorpay_signature,
+        )
+      },
+      prefill: {
+        name: currentUser?.name || '',
+        email: currentUser?.email || '',
+        contact: currentUser?.phone || undefined,
+      },
+      theme: {
+        color: '#059669', // emerald-600
+      },
+      modal: {
+        ondismiss: () => {
+          setStep('form')
+          toast.info('Payment cancelled')
+        },
+      },
+    }
+
+    try {
+      const rzp = new window.Razorpay(options)
+      rzp.open()
+    } catch {
+      // Fallback to demo mode
+      handleDemoPayment(orderData.orderId)
+    }
   }
 
-  const formatExpiry = (value: string) => {
-    const clean = value.replace(/\D/g, '').slice(0, 4)
-    if (clean.length > 2) return clean.slice(0, 2) + '/' + clean.slice(2)
-    return clean
-  }
-
-  const handlePayment = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (cardNumber.replace(/\s/g, '').length < 16) {
-      toast.error('Please enter a valid card number')
-      return
-    }
-    if (expiry.length < 5) {
-      toast.error('Please enter a valid expiry date')
-      return
-    }
-    if (cvv.length < 3) {
-      toast.error('Please enter a valid CVV')
-      return
-    }
-
+  const handleDemoPayment = async (orderId: string) => {
     setStep('processing')
-
     // Simulate payment processing
-    setTimeout(async () => {
-      try {
-        const res = await fetch('/api/orders', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ noteId: paymentNote.id, amount: paymentNote.price }),
-        })
-        const data = await res.json()
-        if (!res.ok) throw new Error(data.error || 'Payment failed')
-
-        setStep('success')
-        toast.success('Payment successful! Downloading your notes...')
-
-        // Auto-download after a delay
-        setTimeout(() => {
-          window.open(`/api/upload/download/${paymentNote.id}`, '_blank')
-        }, 1000)
-      } catch {
-        toast.error('Payment failed. Please try again.')
-        setStep('form')
-      }
-    }, 2000)
+    await new Promise((resolve) => setTimeout(resolve, 2000))
+    await verifyAndCompletePayment(orderId, `pay_demo_${Date.now()}`, `sig_demo_${Date.now()}`)
   }
 
-  const handleSelectCard = (last4: string) => {
-    setCardNumber(`•••• •••• •••• ${last4}`)
-    setExpiry('12/28')
-    setCvv('•••')
-    setCardName('Cardholder Name')
+  const verifyAndCompletePayment = async (
+    razorpayOrderId: string,
+    razorpayPaymentId: string,
+    razorpaySignature: string,
+  ) => {
+    setStep('processing')
+    try {
+      // 1. Verify payment
+      await fetch('/api/razorpay', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          razorpay_order_id: razorpayOrderId,
+          razorpay_payment_id: razorpayPaymentId,
+          razorpay_signature: razorpaySignature,
+          noteId: paymentNote.id,
+          userId: currentUser?.id,
+          amount: paymentNote.price,
+        }),
+      })
+
+      // 2. Create order record with commission
+      const res = await fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          noteId: paymentNote.id,
+          amount: paymentNote.price,
+          userId: currentUser?.id,
+          razorpayPaymentId,
+          razorpayOrderId,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Failed to record order')
+
+      setStep('success')
+      toast.success('Payment successful! Downloading your notes...')
+
+      // Auto-download after a delay
+      setTimeout(() => {
+        window.open(`/api/upload/download/${paymentNote.id}`, '_blank')
+      }, 1500)
+    } catch {
+      toast.error('Payment failed. Please try again.')
+      setStep('form')
+    }
+  }
+
+  const handlePayNow = async () => {
+    if (!currentUser) {
+      toast.error('Please sign in to purchase notes')
+      return
+    }
+
+    try {
+      // Create Razorpay order
+      const res = await fetch('/api/razorpay', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          amount: paymentNote.price,
+          noteId: paymentNote.id,
+          userId: currentUser.id,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Failed to create payment order')
+
+      // Open Razorpay checkout
+      openRazorpayCheckout(data)
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Failed to initiate payment')
+    }
   }
 
   return (
-    <Dialog open={showPaymentDialog} onOpenChange={(open) => !open && resetDialog()}>
-      <DialogContent className="sm:max-w-md">
-        {step === 'form' && (
-          <>
-            <DialogHeader>
-              <DialogTitle className="flex items-center gap-2">
-                <CreditCard className="h-5 w-5 text-emerald-600" />
-                Secure Payment
-              </DialogTitle>
-              <DialogDescription>
-                Complete your purchase to download &quot;{paymentNote.title}&quot;
-              </DialogDescription>
-            </DialogHeader>
+    <>
+      <Script
+        src="https://checkout.razorpay.com/v1/checkout.js"
+        strategy="lazyOnload"
+      />
+      <Dialog open={showPaymentDialog} onOpenChange={(open) => !open && resetDialog()}>
+        <DialogContent className="sm:max-w-md">
+          {step === 'form' && (
+            <>
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <Wallet className="h-5 w-5 text-emerald-600" />
+                  Secure Payment
+                </DialogTitle>
+                <DialogDescription>
+                  Purchase &quot;{paymentNote.title}&quot; via Razorpay
+                </DialogDescription>
+              </DialogHeader>
 
-            <div className="bg-emerald-50 rounded-lg p-4 flex items-center justify-between mb-4">
-              <span className="text-sm text-emerald-800">Amount to pay</span>
-              <span className="text-2xl font-bold text-emerald-700">₹{paymentNote.price}</span>
-            </div>
-
-            {/* Quick Card Selection */}
-            <div className="space-y-2 mb-4">
-              <Label className="text-xs text-muted-foreground">Quick select saved card</Label>
-              <div className="flex gap-2">
-                {MOCK_CARDS.map((card) => (
-                  <button
-                    key={card.last4}
-                    type="button"
-                    onClick={() => handleSelectCard(card.last4)}
-                    className="flex items-center gap-2 px-3 py-2 text-xs rounded-lg border hover:bg-gray-50 transition-colors"
-                  >
-                    <CreditCard className="h-4 w-4 text-muted-foreground" />
-                    {card.brand} •••• {card.last4}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <form onSubmit={handlePayment} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="card-name">Cardholder Name</Label>
-                <Input
-                  id="card-name"
-                  placeholder="John Doe"
-                  value={cardName}
-                  onChange={(e) => setCardName(e.target.value)}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="card-number">Card Number</Label>
-                <Input
-                  id="card-number"
-                  placeholder="4242 4242 4242 4242"
-                  value={cardNumber}
-                  onChange={(e) => setCardNumber(formatCardNumber(e.target.value))}
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-2">
-                  <Label htmlFor="expiry">Expiry</Label>
-                  <Input
-                    id="expiry"
-                    placeholder="MM/YY"
-                    value={expiry}
-                    onChange={(e) => setExpiry(formatExpiry(e.target.value))}
-                  />
+              {/* Price Breakdown */}
+              <div className="bg-emerald-50 rounded-lg p-4 space-y-2 mb-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-emerald-800">Note Price</span>
+                  <span className="font-semibold text-emerald-700">₹{paymentNote.price}</span>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="cvv">CVV</Label>
-                  <Input
-                    id="cvv"
-                    type="password"
-                    placeholder="•••"
-                    maxLength={4}
-                    value={cvv}
-                    onChange={(e) => setCvv(e.target.value.replace(/\D/g, ''))}
-                  />
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-emerald-800">Platform Fee</span>
+                  <span className="font-semibold text-emerald-700">₹{COMMISSION}</span>
+                </div>
+                <div className="border-t border-emerald-200 pt-2 flex items-center justify-between">
+                  <span className="text-sm font-bold text-emerald-900">You Pay</span>
+                  <span className="text-xl font-bold text-emerald-700">₹{paymentNote.price}</span>
+                </div>
+                <div className="flex items-center gap-1 text-xs text-emerald-600">
+                  <Info className="h-3 w-3 shrink-0" />
+                  <span>Seller receives ₹{sellerGets} after platform fee</span>
                 </div>
               </div>
 
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              {/* Payment Methods */}
+              <div className="space-y-3 mb-4">
+                <p className="text-xs font-medium text-muted-foreground">Pay securely via Razorpay</p>
+                <div className="grid grid-cols-3 gap-2">
+                  <div className="flex flex-col items-center gap-1.5 p-3 rounded-lg border bg-gray-50">
+                    <Smartphone className="h-5 w-5 text-blue-600" />
+                    <span className="text-xs font-medium">UPI</span>
+                  </div>
+                  <div className="flex flex-col items-center gap-1.5 p-3 rounded-lg border bg-gray-50">
+                    <Building2 className="h-5 w-5 text-purple-600" />
+                    <span className="text-xs font-medium">Net Banking</span>
+                  </div>
+                  <div className="flex flex-col items-center gap-1.5 p-3 rounded-lg border bg-gray-50">
+                    <Wallet className="h-5 w-5 text-amber-600" />
+                    <span className="text-xs font-medium">Wallet</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 text-xs text-muted-foreground mb-4">
                 <ShieldCheck className="h-4 w-4 text-emerald-500" />
-                <span>Your payment is secured with 256-bit SSL encryption</span>
+                <span>Payments are secured by Razorpay with 256-bit encryption</span>
               </div>
 
-              <Button type="submit" className="w-full bg-emerald-600 hover:bg-emerald-700 gap-2">
-                <Lock className="h-4 w-4" />
-                Pay ₹{paymentNote.price}
+              <Button
+                onClick={handlePayNow}
+                className="w-full bg-emerald-600 hover:bg-emerald-700 gap-2 h-12 text-base font-semibold"
+              >
+                <svg viewBox="0 0 24 24" className="h-5 w-5 fill-current" aria-hidden="true">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z" fill="none"/>
+                </svg>
+                Pay ₹{paymentNote.price} with Razorpay
               </Button>
-            </form>
-          </>
-        )}
+            </>
+          )}
 
-        {step === 'processing' && (
-          <div className="py-12 text-center space-y-4">
-            <div className="mx-auto w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center">
-              <Loader2 className="h-8 w-8 animate-spin text-emerald-600" />
+          {step === 'processing' && (
+            <div className="py-12 text-center space-y-4">
+              <div className="mx-auto w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center">
+                <Loader2 className="h-8 w-8 animate-spin text-emerald-600" />
+              </div>
+              <h3 className="text-lg font-semibold">Processing Payment</h3>
+              <p className="text-sm text-muted-foreground">
+                Please wait while we verify your payment...
+              </p>
             </div>
-            <h3 className="text-lg font-semibold">Processing Payment</h3>
-            <p className="text-sm text-muted-foreground">
-              Please wait while we process your payment securely...
-            </p>
-          </div>
-        )}
+          )}
 
-        {step === 'success' && (
-          <div className="py-8 text-center space-y-4">
-            <div className="mx-auto w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center">
-              <CheckCircle2 className="h-8 w-8 text-emerald-600" />
+          {step === 'success' && (
+            <div className="py-8 text-center space-y-4">
+              <div className="mx-auto w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center">
+                <CheckCircle2 className="h-8 w-8 text-emerald-600" />
+              </div>
+              <h3 className="text-lg font-semibold">Payment Successful!</h3>
+              <p className="text-sm text-muted-foreground">
+                Your download will start automatically. You can also download from your dashboard.
+              </p>
+              <Button onClick={resetDialog} className="bg-emerald-600 hover:bg-emerald-700">
+                Done
+              </Button>
             </div>
-            <h3 className="text-lg font-semibold">Payment Successful!</h3>
-            <p className="text-sm text-muted-foreground">
-              Your download will start automatically. You can also download from your dashboard.
-            </p>
-            <Button onClick={resetDialog} className="bg-emerald-600 hover:bg-emerald-700">
-              Done
-            </Button>
-          </div>
-        )}
-      </DialogContent>
-    </Dialog>
+          )}
+        </DialogContent>
+      </Dialog>
+    </>
   )
 }

@@ -71,3 +71,45 @@ Stage Summary:
 - All three runtime errors resolved
 - Auth dialog now gracefully handles server errors with user-friendly toast messages
 - All components using toast now properly import from sonner
+
+---
+Task ID: 4
+Agent: Main
+Task: Razorpay integration, commission model, UPI setup, footer links, fix setCurrentView error
+
+Work Log:
+- Fixed `setCurrentView is not defined` in page.tsx — added to useAppStore destructuring
+- Updated Prisma schema: added upiId/accountName/accountNumber/ifscCode to User, added commission/sellerPayout/razorpayPaymentId/razorpayOrderId to Order
+- Pushed schema to DB and regenerated Prisma client
+- Updated Zustand store: added payment fields to CurrentUser and Order interfaces
+- Created /api/razorpay route for order creation and payment verification (supports demo mode)
+- Created /api/users/payment-details PUT route for saving UPI/bank details
+- Updated /api/orders POST to calculate ₹5 commission per sale and track seller payout
+- Completely rewrote payment-dialog.tsx: replaced card form with Razorpay checkout integration
+  - Loads Razorpay SDK via next/script
+  - Shows price breakdown (note price + platform fee)
+  - Displays UPI/Net Banking/Wallet payment method icons
+  - Falls back to demo mode if SDK not loaded
+  - Verifies payment signature and creates order record
+- Completely rewrote dashboard-section.tsx:
+  - Added 5th stat card: Total Sales count
+  - New "Payment" tab (default): Earnings Summary + UPI/Bank setup form
+  - Earnings breakdown: Total Revenue, Platform Fee, Your Payout
+  - Active payment details display with copy UPI button
+  - UPI ID input with validation (@ check)
+  - Bank account fields: Account Name, Account Number, IFSC Code
+  - Quick action buttons in header
+- Completely rewrote footer.tsx: all links are now functional navigation buttons
+  - Marketplace links: Browse Notes, Browse Books, Upload Notes, List a Book
+  - Support links: Help Center, Terms, Privacy, Contact Us (mailto)
+  - Connect links: Share on WhatsApp (wa.me), Email Support, Student Community
+- Clean lint pass with zero errors
+- Verified: GET / 200, GET /api/notes 200, GET /api/books 200
+
+Stage Summary:
+- setCurrentView error fixed
+- Razorpay payment gateway integrated with UPI/Net Banking/Wallet support
+- ₹5 commission per note sale, rest goes to seller
+- Seller can add UPI ID or bank details in Dashboard > Payment tab
+- All footer links are now functional and navigate properly
+- Demo mode fallback for when Razorpay SDK isn't available

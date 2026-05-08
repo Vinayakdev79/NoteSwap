@@ -50,6 +50,9 @@ export interface Order {
   userId: string
   noteId: string
   amount: number
+  commission: number
+  sellerPayout: number
+  razorpayPaymentId: string | null
   status: string
   createdAt: string
   note?: Note
@@ -61,6 +64,10 @@ export interface CurrentUser {
   email: string
   phone: string | null
   college: string | null
+  upiId?: string | null
+  accountName?: string | null
+  accountNumber?: string | null
+  ifscCode?: string | null
 }
 
 interface AppState {

@@ -12,7 +12,7 @@ import BooksSection from '@/components/marketplace/books-section'
 import DashboardSection from '@/components/marketplace/dashboard-section'
 
 export default function Home() {
-  const { currentView, setCurrentUser, notes, setNotes, books, setBooks } = useAppStore()
+  const { currentView, setCurrentView, setCurrentUser, notes, setNotes, books, setBooks } = useAppStore()
 
   // Restore user session
   useEffect(() => {

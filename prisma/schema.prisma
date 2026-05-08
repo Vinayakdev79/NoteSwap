@@ -8,14 +8,18 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  name      String
-  email     String   @unique
-  phone     String?
-  college   String?
-  avatar    String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id            String   @id @default(cuid())
+  name          String
+  email         String   @unique
+  phone         String?
+  college       String?
+  avatar        String?
+  upiId         String?
+  accountName   String?
+  accountNumber String?
+  ifscCode      String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   notes             Note[]
   books             Book[]
@@ -63,12 +67,16 @@ model Book {
 }
 
 model Order {
-  id          String   @id @default(cuid())
-  userId      String
-  noteId      String
-  amount      Float
-  status      String   @default("completed") // pending, completed, failed
-  createdAt   DateTime @default(now())
+  id                String   @id @default(cuid())
+  userId            String
+  noteId            String
+  amount            Float
+  commission        Float    @default(0)
+  sellerPayout      Float    @default(0)
+  razorpayPaymentId String?
+  razorpayOrderId   String?
+  status            String   @default("completed") // pending, completed, failed
+  createdAt         DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id])
   note Note @relation(fields: [noteId], references: [id])
