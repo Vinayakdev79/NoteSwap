@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { db } from '@/lib/db'
+import { supabase } from '@/lib/supabase'
 
 // POST /api/books/contact — create a contact request between buyer and seller
 export async function POST(req: NextRequest) {
@@ -11,15 +11,22 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Book ID and recipient user ID are required' }, { status: 400 })
     }
 
-    const contactRequest = await db.contactRequest.create({
-      data: {
+    const { data: contactRequest, error } = await supabase
+      .from('contact_requests')
+      .insert([{
         bookId,
         fromUserId: fromUserId || 'anonymous',
         toUserId,
         message: message || 'Interested in this book',
         status: 'pending',
-      },
-    })
+        createdAt: new Date().toISOString(),
+      }])
+      .select()
+      .single()
+
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 })
+    }
 
     return NextResponse.json({ contactRequest }, { status: 201 })
   } catch (error: unknown) {

@@ -113,3 +113,29 @@ Stage Summary:
 - Seller can add UPI ID or bank details in Dashboard > Payment tab
 - All footer links are now functional and navigate properly
 - Demo mode fallback for when Razorpay SDK isn't available
+
+---
+Task ID: 5
+Agent: API Rewrite Agent
+Task: Rewrite all API routes from Prisma to Supabase JS Client
+
+Work Log:
+- Rewrote /api/users/route.ts — GET uses .select().eq().single(), POST login uses .eq('email').single(), POST signup uses .maybeSingle() for existence check then .insert().select().single()
+- Rewrote /api/notes/route.ts — GET uses .select('*, user:users(...)') with .order(), POST preserves file upload logic (mkdir, writeFile) and uses supabase .insert(), DELETE uses .delete().eq('id')
+- Rewrote /api/books/route.ts — GET uses .select('*, user:users(...)') with .order(), POST preserves image upload logic and uses supabase .insert(), DELETE uses .delete().eq('id')
+- Rewrote /api/books/contact/route.ts — POST uses .from('contact_requests').insert().select().single()
+- Rewrote /api/orders/route.ts — GET uses .select('*, note:notes(...)') with .eq('userId'), POST uses .maybeSingle() for duplicate check then .insert(), keeps COMMISSION_PER_NOTE = 5
+- Rewrote /api/users/payment-details/route.ts — PUT uses .update().eq('id').select().single()
+- Kept /api/razorpay/route.ts unchanged (no DB access)
+- Kept /api/serve-upload/route.ts unchanged (no DB access)
+- Created /src/lib/supabase.ts — exports supabase client from NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY env vars
+- Removed all `import { db } from '@/lib/db'` references
+- Added proper Supabase error handling (PGRST116 for not-found, error.message for server errors)
+- Used new Date().toISOString() for createdAt/updatedAt on inserts and updates
+
+Stage Summary:
+- All 6 API routes now use @supabase/supabase-js client
+- File upload/download remains on local filesystem (unchanged)
+- Same response JSON structures maintained for frontend compatibility
+- Same HTTP status codes (200, 201, 400, 401, 404, 500) preserved
+- Supabase client requires NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in .env

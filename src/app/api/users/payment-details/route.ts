@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { db } from '@/lib/db'
+import { supabase } from '@/lib/supabase'
 
 // PUT /api/users/payment-details — update seller's UPI and bank details
 export async function PUT(req: NextRequest) {
@@ -21,15 +21,25 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid UPI ID. Must contain @' }, { status: 400 })
     }
 
-    const user = await db.user.update({
-      where: { id: userId },
-      data: {
+    const { data: user, error } = await supabase
+      .from('users')
+      .update({
         upiId: upiId || null,
         accountName: accountName || null,
         accountNumber: accountNumber || null,
         ifscCode: ifscCode || null,
-      },
-    })
+        updatedAt: new Date().toISOString(),
+      })
+      .eq('id', userId)
+      .select()
+      .single()
+
+    if (error) {
+      if (error.code === 'PGRST116') {
+        return NextResponse.json({ error: 'User not found' }, { status: 404 })
+      }
+      return NextResponse.json({ error: error.message }, { status: 500 })
+    }
 
     return NextResponse.json({ user })
   } catch (error: unknown) {

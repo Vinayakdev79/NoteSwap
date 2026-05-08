@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { db } from '@/lib/db'
+import { supabase } from '@/lib/supabase'
 import { writeFile, mkdir } from 'fs/promises'
 import path from 'path'
 
@@ -16,14 +16,15 @@ async function ensureDir() {
 // GET /api/books — list all books
 export async function GET() {
   try {
-    const books = await db.book.findMany({
-      orderBy: { createdAt: 'desc' },
-      include: {
-        user: {
-          select: { id: true, name: true, email: true, phone: true, college: true },
-        },
-      },
-    })
+    const { data: books, error } = await supabase
+      .from('books')
+      .select('*, user:users(id, name, email, phone, college)')
+      .order('createdAt', { ascending: false })
+
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 })
+    }
+
     return NextResponse.json({ books })
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Internal server error'
@@ -58,7 +59,10 @@ export async function POST(req: NextRequest) {
     }
 
     // Verify user exists
-    const user = await db.user.findUnique({ where: { id: userId } })
+    const { data: user, error: userError } = await supabase.from('users').select('*').eq('id', userId).maybeSingle()
+    if (userError) {
+      return NextResponse.json({ error: userError.message }, { status: 500 })
+    }
     if (!user) {
       return NextResponse.json({ error: 'User not found. Please sign in again.' }, { status: 401 })
     }
@@ -74,8 +78,9 @@ export async function POST(req: NextRequest) {
       imageUrl = `/uploads/books/${uniqueName}`
     }
 
-    const book = await db.book.create({
-      data: {
+    const { data: book, error: insertError } = await supabase
+      .from('books')
+      .insert([{
         title,
         author,
         edition,
@@ -85,8 +90,16 @@ export async function POST(req: NextRequest) {
         description,
         imageUrl,
         userId,
-      },
-    })
+        status: 'available',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      }])
+      .select()
+      .single()
+
+    if (insertError) {
+      return NextResponse.json({ error: insertError.message }, { status: 500 })
+    }
 
     return NextResponse.json({ book }, { status: 201 })
   } catch (error: unknown) {
@@ -105,7 +118,12 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ error: 'Book ID is required' }, { status: 400 })
     }
 
-    await db.book.delete({ where: { id } })
+    const { error } = await supabase.from('books').delete().eq('id', id)
+
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 })
+    }
+
     return NextResponse.json({ success: true })
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Internal server error'

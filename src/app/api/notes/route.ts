@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { db } from '@/lib/db'
+import { supabase } from '@/lib/supabase'
 import { writeFile, mkdir } from 'fs/promises'
 import path from 'path'
 
@@ -17,14 +17,15 @@ async function ensureDir() {
 // GET /api/notes — list all notes
 export async function GET() {
   try {
-    const notes = await db.note.findMany({
-      orderBy: { createdAt: 'desc' },
-      include: {
-        user: {
-          select: { id: true, name: true, email: true, college: true },
-        },
-      },
-    })
+    const { data: notes, error } = await supabase
+      .from('notes')
+      .select('*, user:users(id, name, email, college)')
+      .order('createdAt', { ascending: false })
+
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 })
+    }
+
     return NextResponse.json({ notes })
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Internal server error'
@@ -60,7 +61,10 @@ export async function POST(req: NextRequest) {
     }
 
     // Verify user exists
-    const user = await db.user.findUnique({ where: { id: userId } })
+    const { data: user, error: userError } = await supabase.from('users').select('*').eq('id', userId).maybeSingle()
+    if (userError) {
+      return NextResponse.json({ error: userError.message }, { status: 500 })
+    }
     if (!user) {
       return NextResponse.json({ error: 'User not found. Please sign in again.' }, { status: 401 })
     }
@@ -74,8 +78,9 @@ export async function POST(req: NextRequest) {
     const bytes = await file.arrayBuffer()
     await writeFile(filePath, Buffer.from(bytes))
 
-    const note = await db.note.create({
-      data: {
+    const { data: note, error: insertError } = await supabase
+      .from('notes')
+      .insert([{
         title,
         description,
         subject,
@@ -85,8 +90,16 @@ export async function POST(req: NextRequest) {
         price,
         type,
         userId,
-      },
-    })
+        downloads: 0,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      }])
+      .select()
+      .single()
+
+    if (insertError) {
+      return NextResponse.json({ error: insertError.message }, { status: 500 })
+    }
 
     return NextResponse.json({ note }, { status: 201 })
   } catch (error: unknown) {
@@ -105,7 +118,12 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ error: 'Note ID is required' }, { status: 400 })
     }
 
-    await db.note.delete({ where: { id } })
+    const { error } = await supabase.from('notes').delete().eq('id', id)
+
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 })
+    }
+
     return NextResponse.json({ success: true })
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Internal server error'

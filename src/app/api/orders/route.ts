@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { db } from '@/lib/db'
+import { supabase } from '@/lib/supabase'
 
 const COMMISSION_PER_NOTE = 5 // ₹5 commission per note sale
 
@@ -13,15 +13,15 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'User ID is required' }, { status: 400 })
     }
 
-    const orders = await db.order.findMany({
-      where: { userId },
-      orderBy: { createdAt: 'desc' },
-      include: {
-        note: {
-          select: { id: true, title: true, subject: true, fileName: true, userId: true },
-        },
-      },
-    })
+    const { data: orders, error } = await supabase
+      .from('orders')
+      .select('*, note:notes(id, title, subject, fileName, userId)')
+      .eq('userId', userId)
+      .order('createdAt', { ascending: false })
+
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 })
+    }
 
     return NextResponse.json({ orders })
   } catch (error: unknown) {
@@ -45,13 +45,17 @@ export async function POST(req: NextRequest) {
     }
 
     // Check if user already purchased this note
-    const existingOrder = await db.order.findFirst({
-      where: {
-        userId,
-        noteId,
-        status: 'completed',
-      },
-    })
+    const { data: existingOrder, error: findError } = await supabase
+      .from('orders')
+      .select('*')
+      .eq('userId', userId)
+      .eq('noteId', noteId)
+      .eq('status', 'completed')
+      .maybeSingle()
+
+    if (findError) {
+      return NextResponse.json({ error: findError.message }, { status: 500 })
+    }
 
     if (existingOrder) {
       return NextResponse.json({ order: existingOrder, alreadyPurchased: true })
@@ -62,8 +66,9 @@ export async function POST(req: NextRequest) {
     const commission = noteAmount > 0 ? COMMISSION_PER_NOTE : 0
     const sellerPayout = Math.max(0, noteAmount - commission)
 
-    const order = await db.order.create({
-      data: {
+    const { data: order, error: insertError } = await supabase
+      .from('orders')
+      .insert([{
         userId,
         noteId,
         amount: noteAmount,
@@ -72,8 +77,14 @@ export async function POST(req: NextRequest) {
         razorpayPaymentId: razorpayPaymentId || null,
         razorpayOrderId: razorpayOrderId || null,
         status: 'completed',
-      },
-    })
+        createdAt: new Date().toISOString(),
+      }])
+      .select()
+      .single()
+
+    if (insertError) {
+      return NextResponse.json({ error: insertError.message }, { status: 500 })
+    }
 
     return NextResponse.json({ order }, { status: 201 })
   } catch (error: unknown) {

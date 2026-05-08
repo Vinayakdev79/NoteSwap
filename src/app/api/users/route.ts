@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { db } from '@/lib/db'
+import { supabase } from '@/lib/supabase'
 
 // GET /api/users?id=xxx — retrieve user
 export async function GET(req: NextRequest) {
@@ -12,12 +12,15 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Provide id or email' }, { status: 400 })
     }
 
-    const user = await db.user.findUnique({
-      where: id ? { id } : { email: email! },
-    })
+    const { data: user, error } = id
+      ? await supabase.from('users').select('*').eq('id', id).single()
+      : await supabase.from('users').select('*').eq('email', email!).single()
 
-    if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 })
+    if (error) {
+      if (error.code === 'PGRST116') {
+        return NextResponse.json({ error: 'User not found' }, { status: 404 })
+      }
+      return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
     return NextResponse.json({ user })
@@ -39,10 +42,15 @@ export async function POST(req: NextRequest) {
 
     if (isLogin) {
       // Login: find existing user
-      const user = await db.user.findUnique({ where: { email } })
-      if (!user) {
-        return NextResponse.json({ error: 'Account not found. Please sign up first.' }, { status: 404 })
+      const { data: user, error } = await supabase.from('users').select('*').eq('email', email).single()
+
+      if (error) {
+        if (error.code === 'PGRST116') {
+          return NextResponse.json({ error: 'Account not found. Please sign up first.' }, { status: 404 })
+        }
+        return NextResponse.json({ error: error.message }, { status: 500 })
       }
+
       return NextResponse.json({ user })
     } else {
       // Sign up: create new user
@@ -50,15 +58,27 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: 'Name is required' }, { status: 400 })
       }
 
-      const existing = await db.user.findUnique({ where: { email } })
+      // Check if user already exists
+      const { data: existing, error: findError } = await supabase.from('users').select('*').eq('email', email).maybeSingle()
+
+      if (findError) {
+        return NextResponse.json({ error: findError.message }, { status: 500 })
+      }
+
       if (existing) {
         // Auto-login if exists
         return NextResponse.json({ user: existing })
       }
 
-      const user = await db.user.create({
-        data: { name, email, phone, college },
-      })
+      const { data: user, error: insertError } = await supabase
+        .from('users')
+        .insert([{ name, email, phone, college, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }])
+        .select()
+        .single()
+
+      if (insertError) {
+        return NextResponse.json({ error: insertError.message }, { status: 500 })
+      }
 
       return NextResponse.json({ user }, { status: 201 })
     }
