@@ -122,13 +122,13 @@ export default function ListBookDialog({ onListed }: ListBookDialogProps) {
       if (!open) resetForm()
       setShowListBookDialog(open)
     }}>
-      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto bg-[#111827] border-white/10">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <BookOpen className="h-5 w-5 text-teal-600" />
+          <DialogTitle className="flex items-center gap-2 text-white">
+            <BookOpen className="h-5 w-5 text-teal-400" />
             List a Book
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="text-slate-400">
             Sell, lend, or donate your old books to fellow students.
           </DialogDescription>
         </DialogHeader>
@@ -136,8 +136,8 @@ export default function ListBookDialog({ onListed }: ListBookDialogProps) {
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Image Upload */}
           <div className="space-y-2">
-            <Label>Book Photo (optional)</Label>
-            <div className="border-2 border-dashed rounded-lg p-4 hover:border-teal-300 transition-colors">
+            <Label className="text-slate-300">Book Photo (optional)</Label>
+            <div className="border-2 border-dashed border-white/10 rounded-lg p-4 hover:border-teal-500/40 transition-colors">
               {imagePreview ? (
                 <div className="flex items-center gap-3">
                   <img
@@ -146,8 +146,8 @@ export default function ListBookDialog({ onListed }: ListBookDialogProps) {
                     className="h-20 w-16 object-cover rounded-lg"
                   />
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">{imageFile?.name}</p>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-sm font-medium truncate text-white">{imageFile?.name}</p>
+                    <p className="text-xs text-slate-500">
                       {(imageFile!.size / (1024 * 1024)).toFixed(2)} MB
                     </p>
                   </div>
@@ -165,8 +165,8 @@ export default function ListBookDialog({ onListed }: ListBookDialogProps) {
                 </div>
               ) : (
                 <label className="cursor-pointer block text-center py-3">
-                  <ImageIcon className="h-6 w-6 mx-auto text-muted-foreground mb-1" />
-                  <p className="text-xs text-muted-foreground">Click to add photo</p>
+                  <ImageIcon className="h-6 w-6 mx-auto text-slate-500 mb-1" />
+                  <p className="text-xs text-slate-400">Click to add photo</p>
                   <input
                     type="file"
                     className="hidden"
@@ -180,41 +180,44 @@ export default function ListBookDialog({ onListed }: ListBookDialogProps) {
 
           {/* Title */}
           <div className="space-y-2">
-            <Label htmlFor="book-title">Book Title</Label>
+            <Label htmlFor="book-title" className="text-slate-300">Book Title</Label>
             <Input
               id="book-title"
               placeholder="e.g., Introduction to Algorithms"
               value={form.title}
               onChange={(e) => setForm({ ...form, title: e.target.value })}
+              className="bg-white/5 border-white/8 text-white placeholder:text-slate-500 focus:border-emerald-500/40"
             />
           </div>
 
           {/* Author */}
           <div className="space-y-2">
-            <Label htmlFor="book-author">Author</Label>
+            <Label htmlFor="book-author" className="text-slate-300">Author</Label>
             <Input
               id="book-author"
               placeholder="e.g., Thomas H. Cormen"
               value={form.author}
               onChange={(e) => setForm({ ...form, author: e.target.value })}
+              className="bg-white/5 border-white/8 text-white placeholder:text-slate-500 focus:border-emerald-500/40"
             />
           </div>
 
           {/* Edition & Condition */}
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
-              <Label htmlFor="book-edition">Edition (optional)</Label>
+              <Label htmlFor="book-edition" className="text-slate-300">Edition (optional)</Label>
               <Input
                 id="book-edition"
                 placeholder="e.g., 4th Edition"
                 value={form.edition}
                 onChange={(e) => setForm({ ...form, edition: e.target.value })}
+                className="bg-white/5 border-white/8 text-white placeholder:text-slate-500 focus:border-emerald-500/40"
               />
             </div>
             <div className="space-y-2">
-              <Label>Condition</Label>
+              <Label className="text-slate-300">Condition</Label>
               <Select value={form.condition} onValueChange={(v) => setForm({ ...form, condition: v })}>
-                <SelectTrigger>
+                <SelectTrigger className="bg-white/5 border-white/8 text-white">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -229,15 +232,15 @@ export default function ListBookDialog({ onListed }: ListBookDialogProps) {
 
           {/* Type */}
           <div className="space-y-2">
-            <Label>Listing Type</Label>
+            <Label className="text-slate-300">Listing Type</Label>
             <div className="grid grid-cols-3 gap-2">
               <button
                 type="button"
                 onClick={() => setForm({ ...form, type: 'sell' })}
                 className={`flex flex-col items-center gap-1 p-3 rounded-lg border-2 transition-all text-xs ${
                   form.type === 'sell'
-                    ? 'border-teal-500 bg-teal-50 text-teal-700'
-                    : 'border-muted hover:border-muted-foreground/30'
+                    ? 'border-teal-500 bg-teal-500/10 text-teal-400'
+                    : 'border-white/10 text-slate-300 hover:border-white/20'
                 }`}
               >
                 <Tag className="h-5 w-5" />
@@ -249,8 +252,8 @@ export default function ListBookDialog({ onListed }: ListBookDialogProps) {
                 onClick={() => setForm({ ...form, type: 'lend' })}
                 className={`flex flex-col items-center gap-1 p-3 rounded-lg border-2 transition-all text-xs ${
                   form.type === 'lend'
-                    ? 'border-blue-500 bg-blue-50 text-blue-700'
-                    : 'border-muted hover:border-muted-foreground/30'
+                    ? 'border-blue-500 bg-blue-500/10 text-blue-400'
+                    : 'border-white/10 text-slate-300 hover:border-white/20'
                 }`}
               >
                 <Repeat className="h-5 w-5" />
@@ -262,8 +265,8 @@ export default function ListBookDialog({ onListed }: ListBookDialogProps) {
                 onClick={() => setForm({ ...form, type: 'donate', price: '0' })}
                 className={`flex flex-col items-center gap-1 p-3 rounded-lg border-2 transition-all text-xs ${
                   form.type === 'donate'
-                    ? 'border-emerald-500 bg-emerald-50 text-emerald-700'
-                    : 'border-muted hover:border-muted-foreground/30'
+                    ? 'border-emerald-500 bg-emerald-500/10 text-emerald-400'
+                    : 'border-white/10 text-slate-300 hover:border-white/20'
                 }`}
               >
                 <HandHelping className="h-5 w-5" />
@@ -276,7 +279,7 @@ export default function ListBookDialog({ onListed }: ListBookDialogProps) {
           {/* Price */}
           {form.type !== 'donate' && (
             <div className="space-y-2">
-              <Label htmlFor="book-price">
+              <Label htmlFor="book-price" className="text-slate-300">
                 Price (₹) {form.type === 'lend' ? '- per month' : ''}
               </Label>
               <Input
@@ -286,23 +289,25 @@ export default function ListBookDialog({ onListed }: ListBookDialogProps) {
                 placeholder={form.type === 'lend' ? 'e.g., 50/month' : 'e.g., 250'}
                 value={form.price}
                 onChange={(e) => setForm({ ...form, price: e.target.value })}
+                className="bg-white/5 border-white/8 text-white placeholder:text-slate-500 focus:border-emerald-500/40"
               />
             </div>
           )}
 
           {/* Description */}
           <div className="space-y-2">
-            <Label htmlFor="book-desc">Description (optional)</Label>
+            <Label htmlFor="book-desc" className="text-slate-300">Description (optional)</Label>
             <Textarea
               id="book-desc"
               placeholder="Any highlights, notes, or details about the book..."
               rows={2}
               value={form.description}
               onChange={(e) => setForm({ ...form, description: e.target.value })}
+              className="bg-white/5 border-white/8 text-white placeholder:text-slate-500 focus:border-emerald-500/40"
             />
           </div>
 
-          <Button type="submit" className="w-full bg-teal-600 hover:bg-teal-700" disabled={loading}>
+          <Button type="submit" className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white" disabled={loading}>
             {loading ? (
               <Loader2 className="h-4 w-4 animate-spin mr-2" />
             ) : null}

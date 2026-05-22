@@ -121,17 +121,17 @@ export default function BookDetailDialog() {
 
   const typeLabels = { sell: 'For Sale', lend: 'For Lending', donate: 'Free / Donate' }
   const typeColors = {
-    sell: 'bg-amber-100 text-amber-700 border-amber-200',
-    lend: 'bg-blue-100 text-blue-700 border-blue-200',
-    donate: 'bg-emerald-100 text-emerald-700 border-emerald-200',
+    sell: 'bg-amber-500/10 text-amber-400 border-amber-500/30',
+    lend: 'bg-blue-500/10 text-blue-400 border-blue-500/30',
+    donate: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30',
   }
 
   return (
     <Dialog open={!!selectedBook} onOpenChange={(open) => !open && setSelectedBook(null)}>
-      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto bg-[#111827] border-white/10">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <BookOpen className="h-5 w-5 text-teal-600" />
+          <DialogTitle className="flex items-center gap-2 text-white">
+            <BookOpen className="h-5 w-5 text-teal-400" />
             {selectedBook.title}
           </DialogTitle>
         </DialogHeader>
@@ -148,21 +148,21 @@ export default function BookDetailDialog() {
 
           {/* Meta Badges */}
           <div className="flex flex-wrap gap-2">
-            <Badge variant="outline" className={typeColors[selectedBook.type as keyof typeof typeColors]}>
+            <Badge variant="outline" className={`${typeColors[selectedBook.type as keyof typeof typeColors]} border-white/10 text-slate-400`}>
               {typeLabels[selectedBook.type as keyof typeof typeLabels]}
             </Badge>
-            <Badge variant="outline">{selectedBook.condition}</Badge>
+            <Badge variant="outline" className="border-white/10 text-slate-400">{selectedBook.condition}</Badge>
             {selectedBook.edition && (
-              <Badge variant="outline">{selectedBook.edition}</Badge>
+              <Badge variant="outline" className="border-white/10 text-slate-400">{selectedBook.edition}</Badge>
             )}
             {selectedBook.type !== 'donate' && (
-              <Badge className="bg-amber-100 text-amber-700">
+              <Badge className="bg-amber-500/10 text-amber-400 border-white/10">
                 {selectedBook.type === 'lend' ? `₹${selectedBook.price}/month` : `₹${selectedBook.price}`}
               </Badge>
             )}
             <Badge
               variant={isAvailable ? 'secondary' : 'destructive'}
-              className={isAvailable ? 'bg-emerald-100 text-emerald-700' : ''}
+              className={isAvailable ? 'bg-emerald-500/10 text-emerald-400 border-white/10' : 'border-white/10'}
             >
               {selectedBook.status}
             </Badge>
@@ -170,18 +170,18 @@ export default function BookDetailDialog() {
 
           {/* Description */}
           {selectedBook.description && (
-            <p className="text-sm text-muted-foreground leading-relaxed">
+            <p className="text-sm text-slate-300 leading-relaxed">
               {selectedBook.description}
             </p>
           )}
 
           {/* Book Info */}
-          <div className="bg-gray-50 rounded-lg p-4 space-y-2">
+          <div className="border border-white/6 bg-white/[0.03] rounded-lg p-4 space-y-2">
             <div className="flex items-center gap-2 text-sm">
-              <BookOpen className="h-4 w-4 text-muted-foreground" />
-              <span>By <strong>{selectedBook.author}</strong></span>
+              <BookOpen className="h-4 w-4 text-slate-400" />
+              <span className="text-slate-300">By <strong className="text-white">{selectedBook.author}</strong></span>
             </div>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <div className="flex items-center gap-2 text-sm text-slate-400">
               <Calendar className="h-4 w-4" />
               Listed on {formatDate(selectedBook.createdAt)}
             </div>
@@ -189,19 +189,19 @@ export default function BookDetailDialog() {
 
           {/* Seller Info */}
           {selectedBook.user && !isOwner && (
-            <div className="bg-gray-50 rounded-lg p-4 space-y-3">
-              <h4 className="font-semibold text-sm flex items-center gap-2">
+            <div className="border border-white/6 bg-white/[0.03] rounded-lg p-4 space-y-3">
+              <h4 className="font-semibold text-sm flex items-center gap-2 text-white">
                 <User className="h-4 w-4" />
                 Listed by
               </h4>
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-full bg-teal-100">
-                  <User className="h-5 w-5 text-teal-600" />
+                <div className="p-2 rounded-full bg-teal-500/10">
+                  <User className="h-5 w-5 text-teal-400" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium">{selectedBook.user.name}</p>
+                  <p className="text-sm font-medium text-white">{selectedBook.user.name}</p>
                   {selectedBook.user.college && (
-                    <p className="text-xs text-muted-foreground flex items-center gap-1">
+                    <p className="text-xs text-slate-400 flex items-center gap-1">
                       <GraduationCap className="h-3 w-3" />
                       {selectedBook.user.college}
                     </p>
@@ -214,15 +214,15 @@ export default function BookDetailDialog() {
           {/* Contact Actions */}
           {!isOwner && isAvailable && (
             <div className="space-y-3 pt-2">
-              <p className="text-sm font-medium flex items-center gap-2">
-                <MessageCircle className="h-4 w-4 text-teal-600" />
+              <p className="text-sm font-medium flex items-center gap-2 text-white">
+                <MessageCircle className="h-4 w-4 text-teal-400" />
                 Contact Seller
               </p>
 
               <div className="grid grid-cols-2 gap-2">
                 {sellerPhone && (
                   <Button
-                    className="bg-green-600 hover:bg-green-700 gap-2 w-full"
+                    className="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white gap-2 w-full"
                     onClick={() => handleContact('whatsapp')}
                   >
                     <svg viewBox="0 0 24 24" className="h-4 w-4 fill-current">
@@ -234,7 +234,7 @@ export default function BookDetailDialog() {
                 {sellerEmail && (
                   <Button
                     variant="outline"
-                    className="gap-2 w-full"
+                    className="gap-2 w-full border-white/10 text-slate-300 hover:bg-white/8 hover:text-white"
                     onClick={() => handleContact('email')}
                   >
                     <Mail className="h-4 w-4" />
@@ -245,7 +245,7 @@ export default function BookDetailDialog() {
 
               {/* Direct Message */}
               <div className="space-y-2">
-                <Label className="text-xs text-muted-foreground">
+                <Label className="text-xs text-slate-400">
                   Or send a message directly
                 </Label>
                 <div className="flex gap-2">
@@ -253,10 +253,11 @@ export default function BookDetailDialog() {
                     placeholder="Hi, I'm interested in this book..."
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
+                    className="bg-white/5 border-white/8 text-white placeholder:text-slate-500 focus:border-emerald-500/40"
                   />
                   <Button
                     size="icon"
-                    className="shrink-0 bg-teal-600 hover:bg-teal-700"
+                    className="shrink-0 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white"
                     onClick={handleSendMessage}
                     disabled={sending || !message.trim()}
                   >
@@ -269,8 +270,8 @@ export default function BookDetailDialog() {
 
           {/* Safety Notice */}
           {!isOwner && isAvailable && (
-            <div className="flex items-start gap-2 text-xs text-muted-foreground bg-amber-50 p-3 rounded-lg border border-amber-100">
-              <ShieldCheck className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
+            <div className="flex items-start gap-2 text-xs text-slate-400 bg-amber-500/5 p-3 rounded-lg border border-amber-500/10">
+              <ShieldCheck className="h-4 w-4 text-amber-400 shrink-0 mt-0.5" />
               <span>
                 Meet in a safe, public place for book exchanges. NoteSwap is not responsible for transactions between users.
               </span>
@@ -284,7 +285,7 @@ export default function BookDetailDialog() {
 
 function Label({ className, children }: { className?: string; children: React.ReactNode }) {
   return (
-    <label className={`text-sm font-medium ${className || ''}`}>
+    <label className={`text-sm font-medium text-slate-300 ${className || ''}`}>
       {children}
     </label>
   )

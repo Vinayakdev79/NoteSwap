@@ -47,13 +47,9 @@ export default function AuthDialog() {
       const res = await fetch('/api/users', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...form,
-          isLogin,
-        }),
+        body: JSON.stringify({ ...form, isLogin }),
       })
 
-      // Handle non-JSON responses (e.g. server error pages)
       const contentType = res.headers.get('content-type') || ''
       if (!contentType.includes('application/json')) {
         throw new Error('Server error. Please try again in a moment.')
@@ -83,13 +79,13 @@ export default function AuthDialog() {
       if (!open) resetForm()
       setShowAuthDialog(open)
     }}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md bg-[#111827] border-white/10">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            {isLogin ? <LogIn className="h-5 w-5 text-emerald-600" /> : <UserPlus className="h-5 w-5 text-emerald-600" />}
+          <DialogTitle className="flex items-center gap-2 text-white">
+            {isLogin ? <LogIn className="h-5 w-5 text-emerald-400" /> : <UserPlus className="h-5 w-5 text-emerald-400" />}
             {isLogin ? 'Welcome Back' : 'Create Account'}
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="text-slate-400">
             {isLogin
               ? 'Sign in to upload notes, list books, and manage your marketplace.'
               : 'Join NoteSwap to start sharing and trading with fellow students.'}
@@ -99,10 +95,11 @@ export default function AuthDialog() {
         <form onSubmit={handleSubmit} className="space-y-4">
           {!isLogin && (
             <div className="space-y-2">
-              <Label htmlFor="name">Full Name</Label>
+              <Label htmlFor="name" className="text-slate-300">Full Name</Label>
               <Input
                 id="name"
                 placeholder="John Doe"
+                className="bg-white/5 border-white/8 text-white placeholder:text-slate-500 focus:border-emerald-500/40"
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
               />
@@ -110,11 +107,12 @@ export default function AuthDialog() {
           )}
 
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email" className="text-slate-300">Email</Label>
             <Input
               id="email"
               type="email"
               placeholder="you@university.edu"
+              className="bg-white/5 border-white/8 text-white placeholder:text-slate-500 focus:border-emerald-500/40"
               value={form.email}
               onChange={(e) => setForm({ ...form, email: e.target.value })}
             />
@@ -123,19 +121,21 @@ export default function AuthDialog() {
           {!isLogin && (
             <>
               <div className="space-y-2">
-                <Label htmlFor="phone">WhatsApp Number (optional)</Label>
+                <Label htmlFor="phone" className="text-slate-300">WhatsApp Number (optional)</Label>
                 <Input
                   id="phone"
                   placeholder="+91 98765 43210"
+                  className="bg-white/5 border-white/8 text-white placeholder:text-slate-500 focus:border-emerald-500/40"
                   value={form.phone}
                   onChange={(e) => setForm({ ...form, phone: e.target.value })}
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="college">College / University (optional)</Label>
+                <Label htmlFor="college" className="text-slate-300">College / University (optional)</Label>
                 <Input
                   id="college"
                   placeholder="Your college name"
+                  className="bg-white/5 border-white/8 text-white placeholder:text-slate-500 focus:border-emerald-500/40"
                   value={form.college}
                   onChange={(e) => setForm({ ...form, college: e.target.value })}
                 />
@@ -143,10 +143,12 @@ export default function AuthDialog() {
             </>
           )}
 
-          <Button type="submit" className="w-full bg-emerald-600 hover:bg-emerald-700" disabled={loading}>
-            {loading ? (
-              <Loader2 className="h-4 w-4 animate-spin mr-2" />
-            ) : null}
+          <Button
+            type="submit"
+            className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white"
+            disabled={loading}
+          >
+            {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
             {isLogin ? 'Sign In' : 'Create Account'}
           </Button>
 
@@ -154,7 +156,7 @@ export default function AuthDialog() {
             <button
               type="button"
               onClick={() => setIsLogin(!isLogin)}
-              className="text-emerald-600 hover:underline font-medium"
+              className="text-emerald-400 hover:text-emerald-300 hover:underline font-medium"
             >
               {isLogin ? "Don't have an account? Sign up" : 'Already have an account? Sign in'}
             </button>

@@ -197,34 +197,34 @@ export default function PaymentDialog() {
         strategy="lazyOnload"
       />
       <Dialog open={showPaymentDialog} onOpenChange={(open) => !open && resetDialog()}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md bg-[#111827] border-white/10">
           {step === 'form' && (
             <>
               <DialogHeader>
-                <DialogTitle className="flex items-center gap-2">
-                  <Wallet className="h-5 w-5 text-emerald-600" />
+                <DialogTitle className="flex items-center gap-2 text-white">
+                  <Wallet className="h-5 w-5 text-emerald-400" />
                   Secure Payment
                 </DialogTitle>
-                <DialogDescription>
+                <DialogDescription className="text-slate-400">
                   Purchase &quot;{paymentNote.title}&quot; via Razorpay
                 </DialogDescription>
               </DialogHeader>
 
               {/* Price Breakdown */}
-              <div className="bg-emerald-50 rounded-lg p-4 space-y-2 mb-4">
+              <div className="border border-white/6 bg-white/[0.03] rounded-lg p-4 space-y-2 mb-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-emerald-800">Note Price</span>
-                  <span className="font-semibold text-emerald-700">₹{paymentNote.price}</span>
+                  <span className="text-sm text-slate-300">Note Price</span>
+                  <span className="font-semibold text-emerald-400">₹{paymentNote.price}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-emerald-800">Platform Fee</span>
-                  <span className="font-semibold text-emerald-700">₹{COMMISSION}</span>
+                  <span className="text-sm text-slate-300">Platform Fee</span>
+                  <span className="font-semibold text-emerald-400">₹{COMMISSION}</span>
                 </div>
-                <div className="border-t border-emerald-200 pt-2 flex items-center justify-between">
-                  <span className="text-sm font-bold text-emerald-900">You Pay</span>
-                  <span className="text-xl font-bold text-emerald-700">₹{paymentNote.price}</span>
+                <div className="border-t border-white/6 pt-2 flex items-center justify-between">
+                  <span className="text-sm font-bold text-white">You Pay</span>
+                  <span className="text-xl font-bold text-emerald-400">₹{paymentNote.price}</span>
                 </div>
-                <div className="flex items-center gap-1 text-xs text-emerald-600">
+                <div className="flex items-center gap-1 text-xs text-slate-500">
                   <Info className="h-3 w-3 shrink-0" />
                   <span>Seller receives ₹{sellerGets} after platform fee</span>
                 </div>
@@ -232,31 +232,31 @@ export default function PaymentDialog() {
 
               {/* Payment Methods */}
               <div className="space-y-3 mb-4">
-                <p className="text-xs font-medium text-muted-foreground">Pay securely via Razorpay</p>
+                <p className="text-xs font-medium text-slate-400">Pay securely via Razorpay</p>
                 <div className="grid grid-cols-3 gap-2">
-                  <div className="flex flex-col items-center gap-1.5 p-3 rounded-lg border bg-gray-50">
-                    <Smartphone className="h-5 w-5 text-blue-600" />
-                    <span className="text-xs font-medium">UPI</span>
+                  <div className="flex flex-col items-center gap-1.5 p-3 rounded-lg border border-white/6 bg-white/[0.03]">
+                    <Smartphone className="h-5 w-5 text-blue-400" />
+                    <span className="text-xs font-medium text-slate-300">UPI</span>
                   </div>
-                  <div className="flex flex-col items-center gap-1.5 p-3 rounded-lg border bg-gray-50">
-                    <Building2 className="h-5 w-5 text-purple-600" />
-                    <span className="text-xs font-medium">Net Banking</span>
+                  <div className="flex flex-col items-center gap-1.5 p-3 rounded-lg border border-white/6 bg-white/[0.03]">
+                    <Building2 className="h-5 w-5 text-purple-400" />
+                    <span className="text-xs font-medium text-slate-300">Net Banking</span>
                   </div>
-                  <div className="flex flex-col items-center gap-1.5 p-3 rounded-lg border bg-gray-50">
-                    <Wallet className="h-5 w-5 text-amber-600" />
-                    <span className="text-xs font-medium">Wallet</span>
+                  <div className="flex flex-col items-center gap-1.5 p-3 rounded-lg border border-white/6 bg-white/[0.03]">
+                    <Wallet className="h-5 w-5 text-amber-400" />
+                    <span className="text-xs font-medium text-slate-300">Wallet</span>
                   </div>
                 </div>
               </div>
 
-              <div className="flex items-center gap-2 text-xs text-muted-foreground mb-4">
-                <ShieldCheck className="h-4 w-4 text-emerald-500" />
+              <div className="flex items-center gap-2 text-xs text-slate-400 mb-4">
+                <ShieldCheck className="h-4 w-4 text-emerald-400" />
                 <span>Payments are secured by Razorpay with 256-bit encryption</span>
               </div>
 
               <Button
                 onClick={handlePayNow}
-                className="w-full bg-emerald-600 hover:bg-emerald-700 gap-2 h-12 text-base font-semibold"
+                className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white gap-2 h-12 text-base font-semibold"
               >
                 <svg viewBox="0 0 24 24" className="h-5 w-5 fill-current" aria-hidden="true">
                   <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z" fill="none"/>
@@ -268,11 +268,11 @@ export default function PaymentDialog() {
 
           {step === 'processing' && (
             <div className="py-12 text-center space-y-4">
-              <div className="mx-auto w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center">
-                <Loader2 className="h-8 w-8 animate-spin text-emerald-600" />
+              <div className="mx-auto w-16 h-16 rounded-full bg-emerald-500/10 flex items-center justify-center">
+                <Loader2 className="h-8 w-8 animate-spin text-emerald-400" />
               </div>
-              <h3 className="text-lg font-semibold">Processing Payment</h3>
-              <p className="text-sm text-muted-foreground">
+              <h3 className="text-lg font-semibold text-white">Processing Payment</h3>
+              <p className="text-sm text-slate-400">
                 Please wait while we verify your payment...
               </p>
             </div>
@@ -280,14 +280,14 @@ export default function PaymentDialog() {
 
           {step === 'success' && (
             <div className="py-8 text-center space-y-4">
-              <div className="mx-auto w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center">
-                <CheckCircle2 className="h-8 w-8 text-emerald-600" />
+              <div className="mx-auto w-16 h-16 rounded-full bg-emerald-500/10 flex items-center justify-center">
+                <CheckCircle2 className="h-8 w-8 text-emerald-400" />
               </div>
-              <h3 className="text-lg font-semibold">Payment Successful!</h3>
-              <p className="text-sm text-muted-foreground">
+              <h3 className="text-lg font-semibold text-white">Payment Successful!</h3>
+              <p className="text-sm text-slate-400">
                 Your download will start automatically. You can also download from your dashboard.
               </p>
-              <Button onClick={resetDialog} className="bg-emerald-600 hover:bg-emerald-700">
+              <Button onClick={resetDialog} className="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white">
                 Done
               </Button>
             </div>

@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react'
 import { useAppStore, type Book } from '@/lib/store'
-import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -33,72 +32,94 @@ function BookCard({ book }: { book: Book }) {
 
   const isOwner = currentUser?.id === book.userId
   const isAvailable = book.status === 'available'
-  const typeIcon = book.type === 'sell' ? Tag : book.type === 'lend' ? BookOpen : HandHeart
-  const TypeIcon = typeIcon
+
+  const typeBadgeClass = book.type === 'sell'
+    ? 'bg-amber-500/15 text-amber-300 border-amber-500/20'
+    : book.type === 'lend'
+    ? 'bg-teal-500/15 text-teal-300 border-teal-500/20'
+    : 'bg-emerald-500/15 text-emerald-300 border-emerald-500/20'
+
+  const imageUrl = book.imageUrl
+    ? `/api/serve-upload?path=${encodeURIComponent(book.imageUrl.replace('/uploads/', ''))}`
+    : null
 
   return (
-    <Card className="group hover:shadow-lg transition-all duration-300 border-0 shadow-sm hover:border-teal-200">
-      <CardHeader className="pb-3">
-        <div className="flex items-start justify-between gap-2">
-          <div className="min-w-0">
-            <h3 className="font-semibold text-sm line-clamp-1">{book.title}</h3>
-            <p className="text-xs text-muted-foreground">{book.author}</p>
+    <div className="group rounded-xl border border-white/6 bg-white/[0.03] overflow-hidden hover:border-emerald-500/20 hover:bg-white/[0.05] transition-all duration-300">
+      {/* Image Area */}
+      <div className="relative h-48 w-full overflow-hidden bg-gradient-to-br from-teal-900/40 to-emerald-900/40">
+        {imageUrl ? (
+          <img
+            src={imageUrl}
+            alt={book.title}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          />
+        ) : (
+          <div className="flex items-center justify-center h-full w-full bg-gradient-to-br from-teal-600/80 to-emerald-700/80">
+            <BookOpen className="h-16 w-16 text-white/70" />
           </div>
-          <Badge
-            variant="outline"
-            className={`shrink-0 ${
-              book.type === 'sell'
-                ? 'border-amber-200 text-amber-700 bg-amber-50'
-                : book.type === 'lend'
-                ? 'border-blue-200 text-blue-700 bg-blue-50'
-                : 'border-emerald-200 text-emerald-700 bg-emerald-50'
-            }`}
-          >
-            {book.type === 'sell' ? 'Sell' : book.type === 'lend' ? 'Lend' : 'Donate'}
+        )}
+        <div className="absolute top-3 left-3">
+          <Badge className={`${typeBadgeClass} text-xs font-medium border`}>
+            {book.type === 'sell' ? 'Sell' : book.type === 'lend' ? 'Lend' : 'Free'}
           </Badge>
         </div>
-      </CardHeader>
-      <CardContent className="pb-3">
-        {book.description && (
-          <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
-            {book.description}
-          </p>
+        {!isAvailable && (
+          <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+            <Badge variant="secondary" className="bg-red-500 text-white text-sm border-0">{book.status}</Badge>
+          </div>
         )}
+      </div>
+
+      {/* Content */}
+      <div className="p-4 space-y-3">
+        <div>
+          <h3 className="font-semibold text-white line-clamp-1 text-sm">{book.title}</h3>
+          <p className="text-xs text-slate-500 mt-0.5">by {book.author}</p>
+        </div>
         <div className="flex items-center gap-2 flex-wrap">
-          <Badge variant="outline" className="text-xs">{book.condition}</Badge>
+          <Badge variant="outline" className="text-xs border-white/10 text-slate-400">{book.condition}</Badge>
           {book.edition && (
-            <Badge variant="outline" className="text-xs">{book.edition}</Badge>
-          )}
-          {book.type !== 'donate' && (
-            <span className="text-xs font-medium text-amber-700 flex items-center gap-1">
-              <Tag className="h-3 w-3" />
-              {book.type === 'lend' ? `₹${book.price}/month` : `₹${book.price}`}
-            </span>
-          )}
-          {!isAvailable && (
-            <Badge variant="secondary" className="text-xs bg-red-100 text-red-700">
-              {book.status}
-            </Badge>
+            <Badge variant="outline" className="text-xs border-white/10 text-slate-400">{book.edition}</Badge>
           )}
         </div>
-      </CardContent>
-      <CardFooter className="pt-3 border-t gap-2">
-        <Button variant="ghost" size="sm" className="gap-1 text-xs" onClick={() => setSelectedBook(book)}>
-          <Eye className="h-3 w-3" />
+        {book.type !== 'donate' ? (
+          <div className="flex items-center gap-1.5 text-sm">
+            <Tag className="h-3.5 w-3.5 text-amber-400" />
+            <span className="font-semibold text-amber-300">
+              {book.type === 'lend' ? `₹${book.price}/month` : `₹${book.price}`}
+            </span>
+          </div>
+        ) : (
+          <div className="flex items-center gap-1.5 text-sm">
+            <HandHeart className="h-3.5 w-3.5 text-emerald-400" />
+            <span className="font-semibold text-emerald-300">Free</span>
+          </div>
+        )}
+      </div>
+
+      {/* Footer */}
+      <div className="p-4 pt-0 flex gap-2">
+        <Button
+          variant="outline"
+          size="sm"
+          className="flex-1 gap-1.5 text-xs h-9 rounded-lg border-white/10 text-slate-300 hover:bg-white/8 hover:text-white hover:border-emerald-500/30"
+          onClick={() => setSelectedBook(book)}
+        >
+          <Eye className="h-3.5 w-3.5" />
           Details
         </Button>
         {!isOwner && isAvailable && (
           <Button
             size="sm"
-            className="gap-1 text-xs bg-teal-600 hover:bg-teal-700 ml-auto"
+            className="flex-1 gap-1.5 text-xs h-9 rounded-lg bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-500 hover:to-emerald-500 text-white"
             onClick={() => setSelectedBook(book)}
           >
-            <MessageCircle className="h-3 w-3" />
+            <MessageCircle className="h-3.5 w-3.5" />
             {book.type === 'sell' ? 'Buy' : book.type === 'lend' ? 'Request' : 'Claim'}
           </Button>
         )}
-      </CardFooter>
-    </Card>
+      </div>
+    </div>
   )
 }
 
@@ -108,9 +129,7 @@ export default function BooksSection() {
   const [conditionFilter, setConditionFilter] = useState('all')
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    fetchBooks()
-  }, [])
+  useEffect(() => { fetchBooks() }, [])
 
   const fetchBooks = async () => {
     try {
@@ -139,20 +158,15 @@ export default function BooksSection() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
         <div>
-          <h2 className="text-2xl md:text-3xl font-bold">Old Books</h2>
-          <p className="text-muted-foreground mt-1">
-            Buy, sell, lend, or donate old textbooks and novels
-          </p>
+          <h2 className="text-2xl md:text-3xl font-bold text-white">Old Books</h2>
+          <p className="text-slate-400 mt-1">Buy, sell, lend, or donate old textbooks and novels</p>
         </div>
         <Button
           onClick={() => {
-            if (!currentUser) {
-              setShowAuthDialog(true)
-              return
-            }
+            if (!currentUser) { setShowAuthDialog(true); return }
             setShowListBookDialog(true)
           }}
-          className="bg-teal-600 hover:bg-teal-700 gap-2 shrink-0"
+          className="bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-500 hover:to-emerald-500 gap-2 shrink-0 rounded-lg h-10 text-white"
         >
           <Plus className="h-4 w-4" />
           List a Book
@@ -162,20 +176,20 @@ export default function BooksSection() {
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-3 mb-6">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
           <Input
             placeholder="Search books by title or author..."
-            className="pl-10"
+            className="pl-10 rounded-lg bg-white/5 border-white/8 text-white placeholder:text-slate-500 focus:border-teal-500/40"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
         <Select value={typeFilter} onValueChange={setTypeFilter}>
-          <SelectTrigger className="w-full sm:w-40">
-            <Filter className="h-4 w-4 mr-2" />
+          <SelectTrigger className="w-full sm:w-40 rounded-lg bg-white/5 border-white/8 text-slate-300">
+            <Filter className="h-4 w-4 mr-2 text-slate-500" />
             <SelectValue placeholder="Type" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="bg-[#111827] border-white/10">
             <SelectItem value="all">All Types</SelectItem>
             <SelectItem value="sell">Buy</SelectItem>
             <SelectItem value="lend">Lend</SelectItem>
@@ -183,10 +197,10 @@ export default function BooksSection() {
           </SelectContent>
         </Select>
         <Select value={conditionFilter} onValueChange={setConditionFilter}>
-          <SelectTrigger className="w-full sm:w-44">
+          <SelectTrigger className="w-full sm:w-44 rounded-lg bg-white/5 border-white/8 text-slate-300">
             <SelectValue placeholder="Condition" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="bg-[#111827] border-white/10">
             <SelectItem value="all">All Conditions</SelectItem>
             <SelectItem value="Like New">Like New</SelectItem>
             <SelectItem value="Good">Good</SelectItem>
@@ -199,27 +213,26 @@ export default function BooksSection() {
       {/* Loading */}
       {loading ? (
         <div className="flex items-center justify-center py-20">
-          <Loader2 className="h-8 w-8 animate-spin text-teal-600" />
+          <Loader2 className="h-8 w-8 animate-spin text-teal-500" />
         </div>
       ) : filteredBooks.length === 0 ? (
         <div className="text-center py-20">
-          <BookOpen className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
-          <h3 className="font-semibold text-lg">No books found</h3>
-          <p className="text-muted-foreground mt-1">
-            {books.length === 0
-              ? 'Be the first to list a book!'
-              : 'Try adjusting your search or filters'}
+          <div className="mx-auto w-16 h-16 rounded-2xl bg-teal-500/10 flex items-center justify-center mb-4">
+            <BookOpen className="h-8 w-8 text-teal-500" />
+          </div>
+          <h3 className="font-semibold text-lg text-white">No books found</h3>
+          <p className="text-slate-400 mt-1">
+            {books.length === 0 ? 'Be the first to list a book!' : 'Try adjusting your search or filters'}
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
           {filteredBooks.map((book) => (
             <BookCard key={book.id} book={book} />
           ))}
         </div>
       )}
 
-      {/* Dialogs */}
       <BookDetailDialog />
       <ListBookDialog onListed={fetchBooks} />
     </section>

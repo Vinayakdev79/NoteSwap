@@ -115,13 +115,13 @@ export default function UploadNoteDialog({ onUploaded }: UploadNoteDialogProps) 
       if (!open) resetForm()
       setShowUploadDialog(open)
     }}>
-      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto bg-[#111827] border-white/10">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Upload className="h-5 w-5 text-emerald-600" />
+          <DialogTitle className="flex items-center gap-2 text-white">
+            <Upload className="h-5 w-5 text-emerald-400" />
             Upload Study Notes
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="text-slate-400">
             Share your study materials with fellow students. Sell them or donate for free.
           </DialogDescription>
         </DialogHeader>
@@ -129,14 +129,14 @@ export default function UploadNoteDialog({ onUploaded }: UploadNoteDialogProps) 
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* File Upload */}
           <div className="space-y-2">
-            <Label>Upload File (PDF, DOC, DOCX, PPT, PPTX)</Label>
-            <div className="border-2 border-dashed rounded-lg p-6 text-center hover:border-emerald-300 transition-colors">
+            <Label className="text-slate-300">Upload File (PDF, DOC, DOCX, PPT, PPTX)</Label>
+            <div className="border-2 border-dashed border-white/10 rounded-lg p-6 text-center hover:border-emerald-500/40 transition-colors">
               {file ? (
                 <div className="flex items-center justify-center gap-3">
-                  <FileText className="h-8 w-8 text-emerald-600" />
+                  <FileText className="h-8 w-8 text-emerald-400" />
                   <div className="text-left min-w-0">
-                    <p className="text-sm font-medium truncate">{file.name}</p>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-sm font-medium truncate text-white">{file.name}</p>
+                    <p className="text-xs text-slate-500">
                       {(file.size / (1024 * 1024)).toFixed(2)} MB
                     </p>
                   </div>
@@ -152,11 +152,11 @@ export default function UploadNoteDialog({ onUploaded }: UploadNoteDialogProps) 
                 </div>
               ) : (
                 <label className="cursor-pointer">
-                  <Upload className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
-                  <p className="text-sm text-muted-foreground">
+                  <Upload className="h-8 w-8 mx-auto text-slate-500 mb-2" />
+                  <p className="text-sm text-slate-400">
                     Click to upload or drag and drop
                   </p>
-                  <p className="text-xs text-muted-foreground mt-1">
+                  <p className="text-xs text-slate-500 mt-1">
                     Max file size: 50MB
                   </p>
                   <input
@@ -172,32 +172,34 @@ export default function UploadNoteDialog({ onUploaded }: UploadNoteDialogProps) 
 
           {/* Title */}
           <div className="space-y-2">
-            <Label htmlFor="note-title">Title</Label>
+            <Label htmlFor="note-title" className="text-slate-300">Title</Label>
             <Input
               id="note-title"
               placeholder="e.g., Data Structures Complete Notes"
               value={form.title}
               onChange={(e) => setForm({ ...form, title: e.target.value })}
+              className="bg-white/5 border-white/8 text-white placeholder:text-slate-500 focus:border-emerald-500/40"
             />
           </div>
 
           {/* Description */}
           <div className="space-y-2">
-            <Label htmlFor="note-desc">Description</Label>
+            <Label htmlFor="note-desc" className="text-slate-300">Description</Label>
             <Textarea
               id="note-desc"
               placeholder="Brief description of the notes content..."
               rows={3}
               value={form.description}
               onChange={(e) => setForm({ ...form, description: e.target.value })}
+              className="bg-white/5 border-white/8 text-white placeholder:text-slate-500 focus:border-emerald-500/40"
             />
           </div>
 
           {/* Subject */}
           <div className="space-y-2">
-            <Label>Subject</Label>
+            <Label className="text-slate-300">Subject</Label>
             <Select value={form.subject} onValueChange={(v) => setForm({ ...form, subject: v })}>
-              <SelectTrigger>
+              <SelectTrigger className="bg-white/5 border-white/8 text-white">
                 <SelectValue placeholder="Select subject" />
               </SelectTrigger>
               <SelectContent>
@@ -210,15 +212,15 @@ export default function UploadNoteDialog({ onUploaded }: UploadNoteDialogProps) 
 
           {/* Type */}
           <div className="space-y-2">
-            <Label>Listing Type</Label>
+            <Label className="text-slate-300">Listing Type</Label>
             <div className="grid grid-cols-2 gap-3">
               <button
                 type="button"
                 onClick={() => setForm({ ...form, type: 'sell' })}
                 className={`flex items-center gap-2 p-3 rounded-lg border-2 transition-all ${
                   form.type === 'sell'
-                    ? 'border-emerald-500 bg-emerald-50 text-emerald-700'
-                    : 'border-muted hover:border-muted-foreground/30'
+                    ? 'border-emerald-500 bg-emerald-500/10 text-emerald-400'
+                    : 'border-white/10 text-slate-300 hover:border-white/20'
                 }`}
               >
                 <DollarSign className="h-5 w-5" />
@@ -232,8 +234,8 @@ export default function UploadNoteDialog({ onUploaded }: UploadNoteDialogProps) 
                 onClick={() => setForm({ ...form, type: 'donate', price: '0' })}
                 className={`flex items-center gap-2 p-3 rounded-lg border-2 transition-all ${
                   form.type === 'donate'
-                    ? 'border-teal-500 bg-teal-50 text-teal-700'
-                    : 'border-muted hover:border-muted-foreground/30'
+                    ? 'border-teal-500 bg-teal-500/10 text-teal-400'
+                    : 'border-white/10 text-slate-300 hover:border-white/20'
                 }`}
               >
                 <Gift className="h-5 w-5" />
@@ -248,7 +250,7 @@ export default function UploadNoteDialog({ onUploaded }: UploadNoteDialogProps) 
           {/* Price */}
           {form.type === 'sell' && (
             <div className="space-y-2">
-              <Label htmlFor="note-price">Price (₹)</Label>
+              <Label htmlFor="note-price" className="text-slate-300">Price (₹)</Label>
               <Input
                 id="note-price"
                 type="number"
@@ -256,11 +258,12 @@ export default function UploadNoteDialog({ onUploaded }: UploadNoteDialogProps) 
                 placeholder="e.g., 99"
                 value={form.price}
                 onChange={(e) => setForm({ ...form, price: e.target.value })}
+                className="bg-white/5 border-white/8 text-white placeholder:text-slate-500 focus:border-emerald-500/40"
               />
             </div>
           )}
 
-          <Button type="submit" className="w-full bg-emerald-600 hover:bg-emerald-700" disabled={loading}>
+          <Button type="submit" className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white" disabled={loading}>
             {loading ? (
               <Loader2 className="h-4 w-4 animate-spin mr-2" />
             ) : null}

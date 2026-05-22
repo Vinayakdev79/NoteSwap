@@ -79,10 +79,10 @@ export default function NoteDetailDialog() {
 
   return (
     <Dialog open={!!selectedNote} onOpenChange={(open) => !open && setSelectedNote(null)}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-lg bg-[#111827] border-white/10">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <FileText className="h-5 w-5 text-emerald-600" />
+          <DialogTitle className="flex items-center gap-2 text-white">
+            <FileText className="h-5 w-5 text-emerald-400" />
             {selectedNote.title}
           </DialogTitle>
         </DialogHeader>
@@ -90,11 +90,11 @@ export default function NoteDetailDialog() {
         <div className="space-y-4">
           {/* Meta */}
           <div className="flex flex-wrap gap-2">
-            <Badge variant={isFree ? 'secondary' : 'default'} className={isFree ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}>
+            <Badge variant={isFree ? 'secondary' : 'default'} className={isFree ? 'bg-emerald-500/10 text-emerald-400 border-white/10' : 'bg-amber-500/10 text-amber-400 border-white/10'}>
               {isFree ? 'Free' : `₹${selectedNote.price}`}
             </Badge>
-            <Badge variant="outline">{selectedNote.subject}</Badge>
-            <Badge variant="outline" className="gap-1">
+            <Badge variant="outline" className="border-white/10 text-slate-400">{selectedNote.subject}</Badge>
+            <Badge variant="outline" className="gap-1 border-white/10 text-slate-400">
               <Download className="h-3 w-3" />
               {selectedNote.downloads} downloads
             </Badge>
@@ -102,19 +102,19 @@ export default function NoteDetailDialog() {
 
           {/* Description */}
           {selectedNote.description && (
-            <p className="text-sm text-muted-foreground leading-relaxed">
+            <p className="text-sm text-slate-300 leading-relaxed">
               {selectedNote.description}
             </p>
           )}
 
           {/* File Info */}
-          <div className="bg-gray-50 rounded-lg p-4 space-y-2">
+          <div className="border border-white/6 bg-white/[0.03] rounded-lg p-4 space-y-2">
             <div className="flex items-center gap-2 text-sm">
-              <FileText className="h-4 w-4 text-muted-foreground" />
-              <span className="font-medium">{selectedNote.fileName}</span>
-              <span className="text-muted-foreground">({formatFileSize(selectedNote.fileSize)})</span>
+              <FileText className="h-4 w-4 text-slate-400" />
+              <span className="font-medium text-white">{selectedNote.fileName}</span>
+              <span className="text-slate-400">({formatFileSize(selectedNote.fileSize)})</span>
             </div>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <div className="flex items-center gap-2 text-sm text-slate-400">
               <Calendar className="h-4 w-4" />
               Uploaded on {formatDate(selectedNote.createdAt)}
             </div>
@@ -122,14 +122,14 @@ export default function NoteDetailDialog() {
 
           {/* Author */}
           {selectedNote.user && (
-            <div className="flex items-center gap-3 p-3 rounded-lg bg-gray-50">
-              <div className="p-2 rounded-full bg-emerald-100">
-                <User className="h-5 w-5 text-emerald-600" />
+            <div className="flex items-center gap-3 p-3 rounded-lg border border-white/6 bg-white/[0.03]">
+              <div className="p-2 rounded-full bg-emerald-500/10">
+                <User className="h-5 w-5 text-emerald-400" />
               </div>
               <div>
-                <p className="text-sm font-medium">{selectedNote.user.name}</p>
+                <p className="text-sm font-medium text-white">{selectedNote.user.name}</p>
                 {selectedNote.user.college && (
-                  <p className="text-xs text-muted-foreground flex items-center gap-1">
+                  <p className="text-xs text-slate-400 flex items-center gap-1">
                     <GraduationCap className="h-3 w-3" />
                     {selectedNote.user.college}
                   </p>
@@ -140,7 +140,7 @@ export default function NoteDetailDialog() {
 
           {/* Action */}
           <Button
-            className="w-full bg-emerald-600 hover:bg-emerald-700 gap-2"
+            className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white gap-2"
             onClick={isOwner ? handleOwnerDownload : handleDownload}
             disabled={downloading}
           >
